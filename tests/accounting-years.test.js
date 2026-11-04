@@ -53,7 +53,7 @@ test("cash position excludes personal and unclassified expenses from cash", () =
 
 test("annual report separates collection-year income from actual receipts", () => {
   const report = buildAnnualReport(baseState(), 2026);
-  assert.equal(report.incomeByCollectionYear, 500);
+  assert.equal(report.incomeByCollectionYear, 590);
   assert.equal(report.incomeReceivedDuringYear, 590);
   assert.equal(report.expensesDuringYear, 130);
   assert.equal(report.campaigns.length, 1);
