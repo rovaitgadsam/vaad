@@ -19,6 +19,13 @@ export function validateTransaction(transaction, context = {}) {
     errors.push("חסר מזהה לתנועה");
   }
   if (!["income", "expense"].includes(transaction.type)) errors.push("סוג התנועה אינו תקין");
+  if (transaction.collectionYear !== undefined && transaction.collectionYear !== null && transaction.collectionYear !== "") {
+    const collectionYear = Number(transaction.collectionYear);
+    if (transaction.type !== "income") errors.push("שנת גבייה מקורית אפשרית רק לתנועת הכנסה");
+    if (!Number.isInteger(collectionYear) || collectionYear < 2000 || collectionYear > 9999) {
+      errors.push("שנת הגבייה המקורית אינה תקינה");
+    }
+  }
   if (!isValidDate(transaction.date)) errors.push("תאריך התנועה אינו תקין");
   if (!String(transaction.description || "").trim()) errors.push("חסר תיאור לתנועה");
 
