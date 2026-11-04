@@ -5,6 +5,7 @@
 ## פרויקט Firebase
 
 - Project ID: `vaad-af7d3`
+- Firebase JavaScript SDK: `13.2.0` via the official modular CDN browser imports
 - Authentication: Google sign-in
 - Firestore document: `appData/main`
 - Data model: schema version 2, documented in `docs/data-model.md`
