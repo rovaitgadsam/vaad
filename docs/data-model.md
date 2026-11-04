@@ -1,4 +1,4 @@
-# Financial data model, schema version 2
+# Financial data model, schema version 3
 
 ## Source of truth
 
@@ -61,3 +61,51 @@ that would invent historical membership or charges.
 - The old `paid` property remains as an audit snapshot during this transition.
 - This phase does not change the Firestore document shape or trigger a cloud
   reset; existing synced data remains in place.
+
+## Accounting years and annual archive, schema version 3
+
+The active accounting year is stored in `state.accounting.activeYear`.
+`state.accounting.years[year]` stores the status and opening balance for
+each year. A closed-year record includes its closing balance, closing time,
+read-only audit, reconciliation, annual report, and a full snapshot of the
+state at closure.
+
+When a year is closed:
+
+- The full set of current transactions and collection campaigns is copied
+  into the closed-year archive snapshot.
+- The new active year starts with empty `transactions` and `campaigns`.
+- Apartments, resident details, fee settings, and other building settings
+  remain in the active state.
+- Only the confirmed actual cash balance is carried into the next year's
+  `openingBalance`. Unpaid collection amounts and personal-paid expenses
+  remain in the old archive and are not carried as active balances.
+- A late receipt for a prior collection year is a new income transaction
+  dated in the active year, with an optional `collectionYear` tag for the
+  original collection year. It affects current cash, while the annual
+  collection report attributes it to the tagged year.
+
+## Cash reconciliation
+
+The estimated cash position is calculated in integer agorot:
+
+- opening balance
+- plus all recorded income
+- less expenses explicitly marked `paidBy: "קופת הוועד"`
+
+Expenses paid personally by a committee member do not reduce the committee's
+cash balance. Expenses without a known payer are reported as unclassified
+and excluded from the estimated cash position until reviewed. Transactions
+whose dates do not match the active accounting year are surfaced as warnings.
+The actual closing balance is entered and confirmed from the bank/cash
+position at year close; the variance and explanation are retained in the
+archive.
+
+## Archive immutability and rollover safeguards
+
+The archive snapshot is stored in the existing `appData/main` state document.
+The closure operation validates the financial state, rejects an invalid
+closing balance, refuses to overwrite an existing next-year archive, creates
+a pre-close backup, and writes the rollover as one Firestore state transaction.
+Closed-year data is presented read-only in the application. No actual-year
+closure is triggered by schema migration.
