@@ -6,7 +6,7 @@
 
 - Project ID: `vaad-af7d3`
 - Firebase JavaScript SDK: `13.2.0` via the official modular CDN browser imports
-- Authentication: Google sign-in
+- Authentication: Email/Password, restricted to two authorized email accounts
 - Firestore document: `appData/main`
 - Data model: schema version 2, documented in `docs/data-model.md`
 
@@ -15,12 +15,11 @@
 1. בחרו בפרויקט `vaad-af7d3`.
 2. ב-Project settings -> General -> Your apps, העתיקו את הגדרות ה-Web app. אם אין Web app, צרו אפליקציית Web.
 3. העתיקו את `apiKey`, `messagingSenderId` ו-`appId` אל `src/services/firebase-config.js`. אין להוסיף service-account key לקוד.
-4. ב-Authentication -> Sign-in method, הפעילו Google.
+4. ב-Authentication -> Sign-in method, הפעילו Email/Password. צרו ב-Authentication -> Users משתמש לכל אחת משתי הכתובות המורשות: zahi.ob4@gmail.com ו-zoharavron@gmail.com.
 5. ב-Authentication -> Settings -> Authorized domains, הוסיפו את `rovaitgadsam.github.io`.
 6. צרו Cloud Firestore database במצב Production.
-7. התחברו לאפליקציה עם חשבון Google המיועד לבעלים. ממשק החיבור יציג את Firebase UID.
-8. החליפו ב-`firestore.rules` את `REPLACE_WITH_OWNER_FIREBASE_UID` ב-UID שהוצג.
-9. התקינו Firebase CLI והתחברו:
+7. כללי firestore.rules מגבילים גישה לשתי כתובות המייל המורשות.
+8. התקינו Firebase CLI והתחברו:
    ```bash
    npm install -g firebase-tools
    firebase login
@@ -40,7 +39,7 @@
 
 ## אבטחה
 
-כללי Firestore חסומים כברירת מחדל. לפני החלפת ה-UID ופריסת הכללים, קריאה וכתיבה למסמך הענן יידחו. אין לפתוח הרשאות לכלל המשתמשים המאומתים.
+כללי Firestore חסומים כברירת מחדל. קריאה וכתיבה למסמך appData/main מותרות רק לשתי כתובות המייל המוגדרות בכללים. אין לפתוח הרשאות לכלל המשתמשים המאומתים.
 
 ## גיבוי
 
