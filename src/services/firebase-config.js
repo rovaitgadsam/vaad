@@ -8,7 +8,6 @@ const firebaseConfig = {
   apiKey: "",
   authDomain: "vaad-af7d3.firebaseapp.com",
   projectId: "vaad-af7d3",
-  storageBucket: "vaad-af7d3.firebasestorage.app",
   messagingSenderId: "",
   appId: ""
 };
