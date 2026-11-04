@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateTransaction } from "../src/core/validation.js";
+import { validateTransaction, auditFinancialState } from "../src/core/validation.js";
 import {
   ensureAccountingState,
   getActiveAccountingYear,
@@ -116,4 +116,19 @@ test("late collection year is valid only for income and a valid year", () => {
   assert.equal(validateTransaction({ ...base, collectionYear: 2026 }).valid, true);
   assert.equal(validateTransaction({ ...base, collectionYear: 1800 }).valid, false);
   assert.equal(validateTransaction({ ...base, type: "expense", collectionYear: 2026 }).valid, false);
+});
+
+test("audit warns about transaction dates outside active accounting year", () => {
+  const state = {
+    accounting: { activeYear: 2026 },
+    apartments: [],
+    campaigns: [],
+    transactions: [{
+      id: "tx-old-date", type: "income", date: "0003-03-04",
+      description: "תאריך ישן", amount: 510
+    }]
+  };
+  const audit = auditFinancialState(state);
+  assert.equal(audit.ok, true);
+  assert.ok(audit.warnings.some(message => message.includes("שנת 3")));
 });
