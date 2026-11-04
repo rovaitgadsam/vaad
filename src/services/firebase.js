@@ -1,8 +1,7 @@
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 import firebaseConfig from "./firebase-config.js";
 
+const VERSION = "13.2.0";
+const BASE = "https://www.gstatic.com/firebasejs/" + VERSION + "/";
 export const firebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
   firebaseConfig.projectId &&
@@ -10,9 +9,24 @@ export const firebaseConfigured = Boolean(
   firebaseConfig.messagingSenderId
 );
 
-export const app = firebaseConfigured
-  ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
-  : null;
+let instances = null;
 
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
+export async function initializeFirebase() {
+  if (!firebaseConfigured) throw new Error("חסרים פרטי Firebase Web App");
+  if (!instances) {
+    const [appSdk, authSdk, firestoreSdk] = await Promise.all([
+      import(BASE + "firebase-app.js"),
+      import(BASE + "firebase-auth.js"),
+      import(BASE + "firebase-firestore.js")
+    ]);
+    const app = appSdk.getApps().length
+      ? appSdk.getApp()
+      : appSdk.initializeApp(firebaseConfig);
+    instances = {
+      app,
+      auth: authSdk.getAuth(app),
+      db: firestoreSdk.getFirestore(app)
+    };
+  }
+  return instances;
+}
