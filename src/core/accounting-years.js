@@ -85,10 +85,19 @@ export function buildAnnualReport(state, year, cashReconciliation = null, genera
   const annualIncome = transactions.filter(tx => tx?.type === "income" && (
     tx.campaignId
       ? campaignYear(campaignById.get(tx.campaignId)) === Number(year)
-      : yearOf(tx.date) === Number(year)
+      : (Number(tx.collectionYear) || yearOf(tx.date)) === Number(year)
   ));
   const actualCashIncome = transactions.filter(tx => tx?.type === "income" && yearOf(tx.date) === Number(year));
   const annualExpenses = transactions.filter(tx => tx?.type === "expense" && yearOf(tx.date) === Number(year));
+  const lateCollectionPayments = transactions
+    .filter(tx => tx?.type === "income" && yearOf(tx.date) === Number(year) &&
+      Number(tx.collectionYear) && Number(tx.collectionYear) !== Number(year))
+    .map(tx => ({
+      date: tx.date,
+      collectionYear: Number(tx.collectionYear),
+      description: String(tx.description || ""),
+      amount: shekels(cents(tx.amount))
+    }));
   const sumCents = items => items.reduce((total, item) => total + cents(item.amount), 0);
   const incomeCents = sumCents(annualIncome);
   const expenseCents = sumCents(annualExpenses);
@@ -128,6 +137,7 @@ export function buildAnnualReport(state, year, cashReconciliation = null, genera
     incomeTransactionCount: annualIncome.length,
     expenseTransactionCount: annualExpenses.length,
     campaigns: campaignSummaries,
+    lateCollectionPayments,
     categories: Object.fromEntries(Object.entries(categories).map(([key, value]) => [key, shekels(value)])),
     payers: Object.fromEntries(Object.entries(payers).map(([key, value]) => [key, shekels(value)])),
     monthlyExpenses: Object.fromEntries(Object.entries(months).map(([key, value]) => [key, shekels(value)])),
@@ -153,8 +163,10 @@ export function prepareYearClose(input, options = {}) {
     throw new Error("השנה כבר נסגרה ונמצאת בארכיון");
   }
   const nextYear = activeYear + 1;
-  if (years[String(nextYear)]?.status === "active") {
-    throw new Error("כבר קיימת שנה פעילה לאחר השנה הנוכחית");
+  if (years[String(nextYear)]) {
+    throw new Error(years[String(nextYear)].status === "active"
+      ? "כבר קיימת שנה פעילה לאחר השנה הנוכחית"
+      : "קיים כבר ארכיון לשנה הבאה. כדי למנוע דריסת נתונים, הסגירה נעצרה");
   }
 
   const position = calculateCashPosition(state);
