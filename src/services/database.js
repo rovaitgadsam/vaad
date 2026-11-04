@@ -1,8 +1,7 @@
-import {
-  doc, runTransaction, onSnapshot, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
-import { db } from "./firebase.js";
+import { initializeFirebase } from "./firebase.js";
 
+const VERSION = "13.2.0";
+const FIRESTORE_URL = "https://www.gstatic.com/firebasejs/" + VERSION + "/firebase-firestore.js";
 const STATE_REF = ["appData", "main"];
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -15,8 +14,9 @@ export class CloudConflictError extends Error {
 }
 
 export async function openStateSync({ uid, initialState, onRemoteState, onStatus }) {
-  if (!db) throw new Error("Firebase לא הוגדר עדיין");
   if (!uid) throw new Error("נדרשת התחברות לחשבון Google");
+  const { db } = await initializeFirebase();
+  const { doc, runTransaction, onSnapshot, serverTimestamp } = await import(FIRESTORE_URL);
   const ref = doc(db, ...STATE_REF);
   let revision = 0;
   let pendingWrite = false;
