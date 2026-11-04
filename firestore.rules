@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny. Replace the UID placeholder with the owner's Firebase
+    // Authentication UID after the first Google sign-in.
+    match /appData/{documentId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == "REPLACE_WITH_OWNER_FIREBASE_UID";
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
