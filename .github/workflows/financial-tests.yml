@@ -2,7 +2,7 @@ name: Financial model tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/annual-close-rollover]
   pull_request:
     branches: [main]
   workflow_dispatch:
