@@ -1,21 +1,25 @@
-import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { auth } from "./firebase.js";
+import { initializeFirebase } from "./firebase.js";
 
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: "select_account" });
+const VERSION = "13.2.0";
+const AUTH_URL = "https://www.gstatic.com/firebasejs/" + VERSION + "/firebase-auth.js";
 
-export function observeAuth(callback) {
-  if (!auth) throw new Error("Firebase לא הוגדר עדיין");
+export async function observeAuth(callback) {
+  const { auth } = await initializeFirebase();
+  const { onAuthStateChanged } = await import(AUTH_URL);
   return onAuthStateChanged(auth, callback);
 }
 
 export async function signInWithGoogle() {
-  if (!auth) throw new Error("Firebase לא הוגדר עדיין");
+  const { auth } = await initializeFirebase();
+  const { GoogleAuthProvider, signInWithPopup } = await import(AUTH_URL);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
   const result = await signInWithPopup(auth, provider);
   return result.user;
 }
 
 export async function signOutUser() {
-  if (!auth) throw new Error("Firebase לא הוגדר עדיין");
+  const { auth } = await initializeFirebase();
+  const { signOut } = await import(AUTH_URL);
   return signOut(auth);
 }
