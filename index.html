@@ -178,7 +178,9 @@ function yearCloseModal(){
  (audit.ok?'':'<p class="negative">יש לתקן את שגיאות התקינות לפני סגירת השנה.</p>')+'</form>');
 }
 function downloadPreCloseBackup(year){
- const blob=new Blob([JSON.stringify(createBackup(state),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ const backup=createBackup(state),serialized=JSON.stringify(backup);
+ try{localStorage.setItem(KEY+'_preclose_'+year,serialized)}catch(error){throw new Error('לא ניתן לשמור גיבוי מקומי לפני הסגירה. לא בוצע שינוי. '+String(error?.message||error))}
+ const blob=new Blob([serialized],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
  link.href=url;link.download='גיבוי-לפני-סגירת-'+year+'.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function commitCriticalState(nextState){
