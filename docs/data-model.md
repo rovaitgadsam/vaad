@@ -13,12 +13,27 @@ A campaign stores its title, date range, status, and an immutable apartment
 snapshot with the amount due for each apartment. New payments are derived
 from the ledger:
 
-- ledger amount: sum of income transactions matching the campaign and apartment
+- ledger amount: sum of valid income transactions matching the campaign and apartment
 - legacy carry-forward: a separately labelled, unverified amount retained
   from the old `campaigns[].paid` aggregate when no matching ledger entries
   account for it
 - displayed paid amount: ledger amount plus unverified carry-forward
 - remaining balance: due amount less displayed paid amount, floored at zero
+- monetary comparisons and remaining balances are calculated in integer agorot
+  to avoid floating-point rounding errors
+
+## Validation and integrity audit
+
+New transactions are validated before they are saved. Collection-linked
+transactions must reference an existing campaign and an apartment in that
+campaign's saved apartment snapshot. The apartment identifiers on the
+transaction must agree. Duplicate transaction identifiers and broken
+references are rejected.
+
+The read-only integrity audit checks duplicate record identifiers, malformed
+transactions, broken campaign/apartment links, malformed campaign snapshots,
+and payments that exceed the recorded due amount. It reports historical
+uncertainty and possible overpayments as warnings; it does not modify records.
 
 ## Non-destructive migration
 
@@ -44,3 +59,5 @@ that would invent historical membership or charges.
 - No unmatched legacy amount is fabricated into an income transaction.
 - Reconciliation metadata records uncertainty rather than silently resolving it.
 - The old `paid` property remains as an audit snapshot during this transition.
+- This phase does not change the Firestore document shape or trigger a cloud
+  reset; existing synced data remains in place.
