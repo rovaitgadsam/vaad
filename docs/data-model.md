@@ -78,8 +78,9 @@ When a year is closed:
 - Apartments, resident details, fee settings, and other building settings
   remain in the active state.
 - Only the confirmed actual cash balance is carried into the next year's
-  `openingBalance`. Unpaid collection amounts and personal-paid expenses
-  remain in the old archive and are not carried as active balances.
+  `openingBalance`. Unpaid collection amounts remain in the old archive and
+  are not carried as active balances. All recorded expenses reduce the
+  committee cash balance, regardless of the internal recorder tag.
 - A late receipt for a prior collection year is a new income transaction
   dated in the active year, with an optional `collectionYear` tag for the
   original collection year. It affects current cash, while the annual
@@ -91,15 +92,21 @@ The estimated cash position is calculated in integer agorot:
 
 - opening balance
 - plus all recorded income
-- less expenses explicitly marked `paidBy: "קופת הוועד"`
+- less **all recorded expenses**, without regard to the internal `paidBy`
+  field
 
-Expenses paid personally by a committee member do not reduce the committee's
-cash balance. Expenses without a known payer are reported as unclassified
-and excluded from the estimated cash position until reviewed. Transactions
-whose dates do not match the active accounting year are surfaced as warnings.
+The `paidBy` property is retained for compatibility with existing records,
+but its application meaning is the person responsible for entering or
+tracking the expense (Zohar, Tzahi, or both). It is internal metadata only.
+It never changes the amount deducted from committee cash, the reported
+financial balance, or the closing balance carried into the next year.
+Reports may show this internal breakdown for follow-up, while every expense
+remains part of the committee's total expenses.
+
 The actual closing balance is entered and confirmed from the bank/cash
 position at year close; the variance and explanation are retained in the
-archive.
+archive. Transactions whose dates do not match the active accounting year
+are surfaced as warnings.
 
 ## Archive immutability and rollover safeguards
 
