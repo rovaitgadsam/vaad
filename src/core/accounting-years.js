@@ -6,7 +6,7 @@ import { auditFinancialState } from "./validation.js";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const cents = value => Math.round((Number(value) || 0) * 100);
-const shekels = value => cents(value) / 100;
+const shekels = value => (Number(value) || 0) / 100;
 export const DEFAULT_ACCOUNTING_YEAR = 2026;
 
 export function ensureAccountingState(input, fallbackYear = DEFAULT_ACCOUNTING_YEAR) {
@@ -19,7 +19,7 @@ export function ensureAccountingState(input, fallbackYear = DEFAULT_ACCOUNTING_Y
     years[String(year)] = {
       year,
       status: "active",
-      openingBalance: shekels(state.openingBalance || 0),
+      openingBalance: shekels(cents(state.openingBalance || 0)),
       openedAt: null
     };
     changed = true;
