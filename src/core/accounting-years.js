@@ -50,7 +50,11 @@ export function calculateCashPosition(state) {
   let committeeExpenseCents = 0;
   let unclassifiedExpenseCents = 0;
   let unclassifiedExpenseCount = 0;
+  let offYearTransactionCount = 0;
+  const activeYear = Number(state?.accounting?.activeYear) || DEFAULT_ACCOUNTING_YEAR;
   for (const tx of transactions) {
+    const transactionYear = yearOf(tx?.date);
+    if (transactionYear !== null && transactionYear !== activeYear) offYearTransactionCount += 1;
     if (!tx || !Number.isFinite(Number(tx.amount))) continue;
     if (tx.type === "income") incomeCents += Math.max(0, cents(tx.amount));
     if (tx.type !== "expense") continue;
@@ -68,6 +72,7 @@ export function calculateCashPosition(state) {
     committeeExpenses: shekels(committeeExpenseCents),
     unclassifiedExpenseAmount: shekels(unclassifiedExpenseCents),
     unclassifiedExpenseCount,
+    offYearTransactionCount,
     estimatedBalance: shekels(openingCents + incomeCents - committeeExpenseCents)
   };
 }
@@ -177,6 +182,7 @@ export function prepareYearClose(input, options = {}) {
     variance: shekels(cents(actualBalance) - cents(position.estimatedBalance)),
     unclassifiedExpenseCount: position.unclassifiedExpenseCount,
     unclassifiedExpenseAmount: position.unclassifiedExpenseAmount,
+    offYearTransactionCount: position.offYearTransactionCount,
     note: String(options.note || "").trim(),
     confirmedAt: options.closedAt || new Date().toISOString()
   };
