@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { validateTransaction } from "../src/core/validation.js";
 import {
   ensureAccountingState,
   getActiveAccountingYear,
@@ -95,4 +96,11 @@ test("year close rejects invalid balances and duplicate closed years", () => {
     closed.accounting.activeYear = 2026;
     prepareYearClose(closed, { closingBalance: 770 });
   }, /כבר נסגרה/);
+});
+
+test("late collection year is valid only for income and a valid year", () => {
+  const base = { id: "late-1", type: "income", date: "2027-02-01", description: "גבייה מאוחרת", amount: 90 };
+  assert.equal(validateTransaction({ ...base, collectionYear: 2026 }).valid, true);
+  assert.equal(validateTransaction({ ...base, collectionYear: 1800 }).valid, false);
+  assert.equal(validateTransaction({ ...base, type: "expense", collectionYear: 2026 }).valid, false);
 });
