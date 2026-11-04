@@ -185,9 +185,8 @@ async function commitCriticalState(nextState){
  await cloudSaveQueue;
  if(cloudPaused)throw new Error('הסנכרון הקודם נכשל. יש לחדש חיבור לענן לפני סגירת השנה.');
  if(firebaseConfigured&&!cloudSync)throw new Error('סגירת שנה מחייבת חיבור פעיל ל-Firebase.');
- if(cloudSync)await cloudSync.save(nextState);
- try{localStorage.setItem(KEY,JSON.stringify(nextState))}catch(error){throw new Error('הנתונים נשמרו בענן, אך לא ניתן לעדכן את העותק המקומי. יש לרענן את האפליקציה. '+String(error?.message||error))}
- state=nextState;
+ if(cloudSync){await cloudSync.save(nextState);state=nextState;try{localStorage.setItem(KEY,JSON.stringify(nextState))}catch(error){throw new Error('הנתונים נשמרו בענן. יש לרענן את הדף כדי לטעון את השנה החדשה מהענן. '+String(error?.message||error))}}
+ else{localStorage.setItem(KEY,JSON.stringify(nextState));state=nextState;}
 }
 function downloadArchiveYear(year){
  const archive=state.accounting?.years?.[String(year)];
