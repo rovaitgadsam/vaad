@@ -120,8 +120,8 @@ import vm from "node:vm";
 
 test("application inline module has valid JavaScript syntax", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-  const match = html.match(/<script type="module">([\\s\\S]*?)<\\/script>/);
+  const match = html.match(/<script type="module">([\s\S]*?)<\/script>/);
   assert.ok(match, "module script exists");
-  const sourceWithoutImports = match[1].replace(/^\\s*import\\s+.*?;\\s*$/gm, "");
+  const sourceWithoutImports = match[1].replace(/^\s*import\s+.*?;\s*$/gm, "");
   assert.doesNotThrow(() => new vm.Script(sourceWithoutImports));
 });
