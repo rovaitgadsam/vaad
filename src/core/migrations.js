@@ -31,7 +31,7 @@ export function migrateState(input) {
 
     // Do not guess which apartments belonged to an old campaign.
     // Missing snapshots are explicitly flagged for human review.
-    if (!Array.isArray(campaign.apartments)) {
+    if (!Array.isArray(campaign.apartments) && campaign.legacyApartmentsMissing !== true) {
       campaign.legacyApartmentsMissing = true;
       changed = true;
     }
