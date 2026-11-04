@@ -9,12 +9,10 @@ export async function observeAuth(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-export async function signInWithGoogle() {
+export async function signInWithEmail(email, password) {
   const { auth } = await initializeFirebase();
-  const { GoogleAuthProvider, signInWithPopup } = await import(AUTH_URL);
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
-  const result = await signInWithPopup(auth, provider);
+  const { signInWithEmailAndPassword } = await import(AUTH_URL);
+  const result = await signInWithEmailAndPassword(auth, email.trim(), password);
   return result.user;
 }
 
