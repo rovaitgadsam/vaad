@@ -47,9 +47,7 @@ export function getActiveAccountingYear(state) {
 export function calculateCashPosition(state) {
   const transactions = Array.isArray(state?.transactions) ? state.transactions : [];
   let incomeCents = 0;
-  let committeeExpenseCents = 0;
-  let unclassifiedExpenseCents = 0;
-  let unclassifiedExpenseCount = 0;
+  let expenseCents = 0;
   let offYearTransactionCount = 0;
   const activeYear = Number(state?.accounting?.activeYear) || DEFAULT_ACCOUNTING_YEAR;
   for (const tx of transactions) {
@@ -57,23 +55,15 @@ export function calculateCashPosition(state) {
     if (transactionYear !== null && transactionYear !== activeYear) offYearTransactionCount += 1;
     if (!tx || !Number.isFinite(Number(tx.amount))) continue;
     if (tx.type === "income") incomeCents += Math.max(0, cents(tx.amount));
-    if (tx.type !== "expense") continue;
-    if (tx.paidBy === "קופת הוועד") {
-      committeeExpenseCents += Math.max(0, cents(tx.amount));
-    } else if (!["זהר", "צחי", "שנינו"].includes(tx.paidBy)) {
-      unclassifiedExpenseCents += Math.max(0, cents(tx.amount));
-      unclassifiedExpenseCount += 1;
-    }
+    if (tx.type === "expense") expenseCents += Math.max(0, cents(tx.amount));
   }
   const openingCents = cents(state?.openingBalance || 0);
   return {
     openingBalance: shekels(openingCents),
     income: shekels(incomeCents),
-    committeeExpenses: shekels(committeeExpenseCents),
-    unclassifiedExpenseAmount: shekels(unclassifiedExpenseCents),
-    unclassifiedExpenseCount,
+    expenses: shekels(expenseCents),
     offYearTransactionCount,
-    estimatedBalance: shekels(openingCents + incomeCents - committeeExpenseCents)
+    estimatedBalance: shekels(openingCents + incomeCents - expenseCents)
   };
 }
 
@@ -180,8 +170,7 @@ export function prepareYearClose(input, options = {}) {
     estimatedBalance: position.estimatedBalance,
     actualBalance,
     variance: shekels(cents(actualBalance) - cents(position.estimatedBalance)),
-    unclassifiedExpenseCount: position.unclassifiedExpenseCount,
-    unclassifiedExpenseAmount: position.unclassifiedExpenseAmount,
+    totalExpenses: position.expenses,
     offYearTransactionCount: position.offYearTransactionCount,
     note: String(options.note || "").trim(),
     confirmedAt: options.closedAt || new Date().toISOString()
