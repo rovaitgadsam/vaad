@@ -117,6 +117,17 @@ export function auditFinancialState(state) {
     }
   }
 
+  const activeYear = Number(data.accounting?.activeYear);
+  if (Number.isInteger(activeYear) && activeYear > 0) {
+    for (const transaction of transactions) {
+      const match = String(transaction?.date || "").match(/^(\\d{4})-\\d{2}-\\d{2}$/);
+      const transactionYear = match ? Number(match[1]) : null;
+      if (transactionYear !== null && transactionYear !== activeYear) {
+        warnings.push("תנועה " + (transaction?.id ?? "ללא מזהה") + ": התאריך שייך לשנת " + transactionYear + " ולא לשנת החשבונאות הפעילה " + activeYear);
+      }
+    }
+  }
+
   for (const campaign of campaigns) {
     if (!Array.isArray(campaign?.apartments)) {
       warnings.push("תקופת גבייה " + (campaign?.title || campaign?.id) + ": חסר צילום מצב היסטורי של הדירות");
