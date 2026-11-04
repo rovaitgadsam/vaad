@@ -4,8 +4,9 @@
  * transaction record already exists in the source data.
  */
 import { linkedCampaignPayments } from "./finance.js";
+import { ensureAccountingState } from "./accounting-years.js";
 
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 3;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -76,16 +77,20 @@ export function migrateState(input) {
     }
   }
 
-  if (Number(state.schemaVersion || 0) < CURRENT_SCHEMA_VERSION) {
-    state.schemaVersion = CURRENT_SCHEMA_VERSION;
-    state.migrationLog = Array.isArray(state.migrationLog) ? state.migrationLog : [];
-    state.migrationLog.push({
+  const accountingMigration = ensureAccountingState(state);
+  if (accountingMigration.changed) changed = true;
+  const migratedState = accountingMigration.state;
+
+  if (Number(migratedState.schemaVersion || 0) < CURRENT_SCHEMA_VERSION) {
+    migratedState.schemaVersion = CURRENT_SCHEMA_VERSION;
+    migratedState.migrationLog = Array.isArray(migratedState.migrationLog) ? migratedState.migrationLog : [];
+    migratedState.migrationLog.push({
       version: CURRENT_SCHEMA_VERSION,
       migratedAt: new Date().toISOString(),
-      description: "Non-destructive campaign payment reconciliation"
+      description: "Non-destructive campaign reconciliation and accounting-year initialization"
     });
     changed = true;
   }
 
-  return { state, changed, schemaVersion: CURRENT_SCHEMA_VERSION };
+  return { state: migratedState, changed, schemaVersion: CURRENT_SCHEMA_VERSION };
 }
