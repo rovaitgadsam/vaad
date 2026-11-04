@@ -42,14 +42,21 @@ test("accounting metadata initializes once and preserves opening balance", () =>
   assert.equal(getActiveAccountingYear(second.state), 2026);
 });
 
-test("cash position excludes personal and unclassified expenses from cash", () => {
+test("cash position subtracts every expense regardless of internal recorder", () => {
   const position = calculateCashPosition(baseState());
   assert.equal(position.openingBalance, 250);
   assert.equal(position.income, 590);
-  assert.equal(position.committeeExpenses, 70);
-  assert.equal(position.unclassifiedExpenseCount, 1);
-  assert.equal(position.unclassifiedExpenseAmount, 20);
-  assert.equal(position.estimatedBalance, 770);
+  assert.equal(position.expenses, 130);
+  assert.equal(position.estimatedBalance, 710);
+
+  const values = ["זהר", "צחי", "שנינו", "קופת הוועד", undefined];
+  for (const value of values) {
+    const state = baseState();
+    state.transactions = state.transactions.map(tx =>
+      tx.type === "expense" ? { ...tx, paidBy: value } : tx
+    );
+    assert.equal(calculateCashPosition(state).estimatedBalance, 710);
+  }
 });
 
 test("annual report separates collection-year income from actual receipts", () => {
@@ -84,7 +91,7 @@ test("year close archives a full immutable snapshot and opens next year with cas
   assert.equal(archive.archiveSnapshot.campaigns.length, 1);
   assert.equal(archive.archiveSnapshot.transactions[1].collectionYear, 2025);
   assert.equal(archive.cashReconciliation.actualBalance, 812.34);
-  assert.equal(archive.cashReconciliation.unclassifiedExpenseCount, 1);
+  assert.equal(archive.cashReconciliation.totalExpenses, 130);
   assert.equal(archive.annualReport.incomeByCollectionYear, 500);
 });
 
