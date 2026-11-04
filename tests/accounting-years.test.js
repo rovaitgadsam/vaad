@@ -98,6 +98,19 @@ test("year close rejects invalid balances and duplicate closed years", () => {
   }, /כבר נסגרה/);
 });
 
+test("year close never overwrites an already archived next year", () => {
+  const state = baseState();
+  state.accounting = {
+    activeYear: 2026,
+    years: {
+      "2026": { year: 2026, status: "active", openingBalance: 250 },
+      "2027": { year: 2027, status: "closed", closingBalance: 12, archiveSnapshot: { marker: "keep" } }
+    }
+  };
+  assert.throws(() => prepareYearClose(state, { closingBalance: 770 }), /קיים כבר ארכיון לשנה הבאה/);
+  assert.equal(state.accounting.years["2027"].archiveSnapshot.marker, "keep");
+});
+
 test("late collection year is valid only for income and a valid year", () => {
   const base = { id: "late-1", type: "income", date: "2027-02-01", description: "גבייה מאוחרת", amount: 90 };
   assert.equal(validateTransaction({ ...base, collectionYear: 2026 }).valid, true);
